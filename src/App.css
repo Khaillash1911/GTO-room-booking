@@ -1,0 +1,222 @@
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #fff8db;
+  color: #333;
+}
+
+.app {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #111827;
+  color: #facc15;
+  font-weight: 700;
+  font-size: 1.7rem;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  text-align: center;
+  user-select: none;
+}
+
+/* Booking section */
+.booking {
+  margin-top: 2rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgb(250 204 21 / 0.2);
+  padding: 2rem;
+}
+
+/* Room selection */
+.rooms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.rooms label {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.1rem;
+}
+
+.rooms input[type="radio"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+/* Week navigation arrows */
+.week-navigation {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.week-navigation button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.8rem;
+  padding: 0;
+  line-height: 1;
+  user-select: none;
+  color: #111827;
+  transition: color 0.3s ease;
+}
+
+.week-navigation button:hover {
+  color: #facc15;
+}
+
+.week-navigation span {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+/* Calendar container */
+.calendar {
+  border: 2px solid #facc15;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+/* Calendar rows */
+.calendar-row {
+  display: flex;
+  width: max-content; /* Allow horizontal scrolling on small screens */
+}
+
+/* Header row */
+.calendar-row.header {
+  background-color: #facc15;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Time slot column */
+.time-slot {
+  flex: 0 0 110px;
+  padding: 0.7rem 0.8rem;
+  border-right: 2px solid #facc15;
+  border-bottom: 2px solid #facc15;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-weight: 600;
+}
+
+/* Hour columns */
+.day,
+.slot {
+  flex: 0 0 70px;
+  border-right: 2px solid #facc15;
+  border-bottom: 2px solid #facc15;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.day {
+  padding: 0.7rem 0.5rem;
+}
+
+.slot {
+  height: 46px;
+  background-color: #fef3c7;
+  cursor: default;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.slot:hover {
+  background-color: #fde68a;
+}
+
+/* Highlight for current day */
+.today .time-slot {
+  background-color: #fde68a;
+  font-weight: 700;
+  color: #b45309;
+}
+
+.today .slot {
+  background-color: #fef9c3;
+}
+
+/* ------------------------- */
+/* ✅ Responsive styles here */
+/* ------------------------- */
+@media (max-width: 768px) {
+  .app {
+    padding: 0 0.5rem;
+    margin: 1rem auto;
+  }
+
+  .navbar {
+    font-size: 1.3rem;
+    padding: 0.8rem 1rem;
+  }
+
+  .booking {
+    padding: 1.2rem;
+  }
+
+  .rooms {
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .rooms label {
+    font-size: 1rem;
+  }
+
+  .week-navigation {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .week-navigation span {
+    font-size: 1rem;
+  }
+
+  .calendar {
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .calendar-row {
+    flex-wrap: nowrap;
+  }
+
+  .time-slot,
+  .day,
+  .slot {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+
+  .slot {
+    height: 40px;
+  }
+}

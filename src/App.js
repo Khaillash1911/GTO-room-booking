@@ -436,7 +436,7 @@ function App() {
                   fontSize: "0.95rem",
                   cursor: "pointer",
                 }}
-                onClick={() => window.open("https://khaillash-portfolio.vercel.app/", "_blank")}
+                onClick={() => window.open("https://khaillashportfolio.netlify.app/", "_blank")}
               >
                 More Projects
               </button>
@@ -460,7 +460,7 @@ function App() {
               style={{
                 minWidth: "120px",
                 maxWidth: "180px",
-                background: "#18181b",
+                background: "#fde047", // yellow background for the whole form
                 borderRadius: "8px",
                 padding: "0.4rem 0.7rem",
                 display: "flex",
@@ -471,31 +471,34 @@ function App() {
               }}
             >
               <form
-                action="https://docs.google.com/forms/d/e/1FAIpQLSfYOUR_FORM_ID/formResponse"
+                action="https://formspree.io/f/movwdjak"
                 method="POST"
                 target="_blank"
                 style={{ width: "100%" }}
               >
-                <label style={{ fontSize: "0.85rem", color: "#facc15", marginBottom: "0.2rem", display: "block" }}>
-                  Leave us a review or idea!
+                <label
+                  style={{
+                    color: "#111",
+                    background: "#fde047",
+                    padding: "0.2em 0.5em",
+                    borderRadius: "4px",
+                    marginBottom: "0.3em",
+                    display: "inline-block"
+                  }}
+                >
+                  We'd love to hear your thoughts!
                 </label>
                 <textarea
-                  name="entry.YOUR_ENTRY_ID"
-                  rows={2}
-                  maxLength={180}
-                  placeholder="Type here..."
-                  style={{
-                    width: "100%",
-                    resize: "none",
-                    borderRadius: "4px",
-                    border: "1px solid #ca8a04",
-                    padding: "0.2em",
-                    fontSize: "0.95rem",
-                    marginBottom: "0.2rem",
-                    background: "#27272a",
-                    color: "#f3f4f6",
-                  }}
+                  name="feedback"
                   required
+                  style={{
+                    background: "#fffde7",
+                    border: "1px solid #ca8a04",
+                    borderRadius: "4px",
+                    width: "100%",
+                    marginBottom: "0.5em",
+                    color: "#111"
+                  }}
                 />
                 <button
                   type="submit"
@@ -504,11 +507,11 @@ function App() {
                     color: "#111827",
                     border: "none",
                     borderRadius: "4px",
-                    padding: "0.15em 0.7em",
+                    padding: "0.3em 1em",
                     fontWeight: "bold",
-                    fontSize: "0.9rem",
+                    fontSize: "0.95rem",
                     cursor: "pointer",
-                    float: "right",
+                    width: "100%"
                   }}
                 >
                   Send

@@ -1,6 +1,6 @@
 [build]
-  command = "npm run build"  # or your build command
-  publish = "src/build"      # update if your publish path is different
+  command = "npm run build"
+  publish = "build"
 
 [build.environment]
   GO_VERSION = "1.22.3"

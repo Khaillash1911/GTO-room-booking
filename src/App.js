@@ -16,6 +16,7 @@ import {
   orderByChild,
   equalTo,
 } from "firebase/database";
+import { FaLinkedin, FaGithub } from "react-icons/fa";
 
 function App() {
   const [selectedRoom, setSelectedRoom] = useState("");
@@ -23,6 +24,7 @@ function App() {
   const [weekDates, setWeekDates] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [popup, setPopup] = useState(null); // {date, hour, show}
+  const [showFooter, setShowFooter] = useState(false);
 
   useEffect(() => {
     const today = new Date();
@@ -106,8 +108,21 @@ function App() {
     setPopup(null);
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.innerHeight + window.scrollY;
+      const documentHeight = document.body.offsetHeight;
+      // Show footer if scrolled to within 20px of the bottom
+      setShowFooter(scrollPosition >= documentHeight - 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    // Check on mount in case content is short
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <div className="app">
+    <div className="app" style={{ minHeight: "100vh", position: "relative", paddingBottom: "90px" }}>
       <nav className="navbar">GTO</nav>
 
       <div className="booking">
@@ -117,7 +132,7 @@ function App() {
             <input
               type="radio"
               name="room"
-              value="GTO Meeting Room"
+              value="Meeting Room"
               onChange={(e) => setSelectedRoom(e.target.value)}
             />
             Meeting Room
@@ -141,11 +156,12 @@ function App() {
             <div
               className="week-navigation"
               style={{
-                marginBottom: "1rem",
+                marginBottom: "0.5rem", // reduced margin below navigation
+                marginTop: "0.3rem",    // add a small margin above if needed
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "2rem",
+                gap: "0.7rem",          // reduced gap between arrows and text
                 userSelect: "none",
               }}
             >
@@ -158,7 +174,7 @@ function App() {
                   cursor: weekOffset > 0 ? "pointer" : "not-allowed",
                   userSelect: "none",
                   lineHeight: 1,
-                  color: weekOffset > 0 ? "#facc15" : "#a1a1aa", // yellow or gray
+                  color: weekOffset > 0 ? "#facc15" : "#a1a1aa",
                   transition: "color 0.2s",
                 }}
                 onMouseEnter={(e) => {
@@ -202,7 +218,7 @@ function App() {
               </span>
             </div>
 
-            <div className="calendar">
+            <div className="calendar" style={{ marginTop: "0.2rem", marginBottom: "3.5rem" }}>
               <div className="calendar-row header">
                 <div className="time-slot"></div>
                 {hours.map((hour) => (
@@ -211,7 +227,6 @@ function App() {
                   </div>
                 ))}
               </div>
-
               {weekDates.map((date) => (
                 <div
                   key={date.toISOString()}
@@ -356,6 +371,153 @@ function App() {
           <p>Please select a room to see its calendar.</p>
         )}
       </div>
+
+      {/* Footer only appears at end of scroll */}
+      {showFooter && (
+        <footer
+          style={{
+            width: "100vw",
+            background: "#111827",
+            color: "#f3f4f6",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "stretch",
+            padding: "0.5rem 0.7rem 0.7rem 0.7rem", // reduced bottom padding
+            zIndex: 100,
+            position: "fixed",
+            left: 0,
+            bottom: 0,
+          }}
+        >
+          {/* Top row: left and right sections */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              width: "100%",
+              maxWidth: 900,
+              margin: "0 auto",
+              gap: "1.5rem",
+            }}
+          >
+            {/* Left section */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "0.4rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.7rem", fontSize: "0.95rem" }}>
+                <span>Created by Khaillash</span>
+                <a
+                  href="https://www.linkedin.com/in/khaillash-sashitharan-57580625a/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "#f3f4f6", fontSize: "1.2rem" }}
+                  aria-label="LinkedIn"
+                >
+                  <FaLinkedin />
+                </a>
+                <a
+                  href="https://github.com/Khaillash1911"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "#f3f4f6", fontSize: "1.2rem" }}
+                  aria-label="GitHub"
+                >
+                  <FaGithub />
+                </a>
+              </div>
+              <button
+                style={{
+                  background: "#facc15",
+                  color: "#111827",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "0.3em 1em",
+                  fontWeight: "bold",
+                  fontSize: "0.95rem",
+                  cursor: "pointer",
+                }}
+                onClick={() => window.open("https://khaillash-portfolio.vercel.app/", "_blank")}
+              >
+                More Projects
+              </button>
+              {/* v1.1 version moved here, right below More Projects, right-aligned */}
+              <div
+                style={{
+                  width: "100%",
+                  textAlign: "right",
+                  fontSize: "0.92rem",
+                  color: "#facc15",
+                  letterSpacing: "0.05em",
+                  marginTop: "0.1rem",
+                  paddingRight: "0.2rem",
+                }}
+              >
+                v1.1
+              </div>
+            </div>
+            {/* Right section: Feedback */}
+            <div
+              style={{
+                minWidth: "120px",
+                maxWidth: "180px",
+                background: "#18181b",
+                borderRadius: "8px",
+                padding: "0.4rem 0.7rem",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                boxShadow: "0 2px 8px #0002",
+                height: "fit-content",
+              }}
+            >
+              <form
+                action="https://docs.google.com/forms/d/e/1FAIpQLSfYOUR_FORM_ID/formResponse"
+                method="POST"
+                target="_blank"
+                style={{ width: "100%" }}
+              >
+                <label style={{ fontSize: "0.85rem", color: "#facc15", marginBottom: "0.2rem", display: "block" }}>
+                  Leave us a review or idea!
+                </label>
+                <textarea
+                  name="entry.YOUR_ENTRY_ID"
+                  rows={2}
+                  maxLength={180}
+                  placeholder="Type here..."
+                  style={{
+                    width: "100%",
+                    resize: "none",
+                    borderRadius: "4px",
+                    border: "1px solid #ca8a04",
+                    padding: "0.2em",
+                    fontSize: "0.95rem",
+                    marginBottom: "0.2rem",
+                    background: "#27272a",
+                    color: "#f3f4f6",
+                  }}
+                  required
+                />
+                <button
+                  type="submit"
+                  style={{
+                    background: "#facc15",
+                    color: "#111827",
+                    border: "none",
+                    borderRadius: "4px",
+                    padding: "0.15em 0.7em",
+                    fontWeight: "bold",
+                    fontSize: "0.9rem",
+                    cursor: "pointer",
+                    float: "right",
+                  }}
+                >
+                  Send
+                </button>
+              </form>
+            </div>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }

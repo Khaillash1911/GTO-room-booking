@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
+import { ref, push } from "firebase/database";
 import { db } from "./firebase";
 //import {
   //collection,
@@ -9,8 +10,6 @@ import { db } from "./firebase";
  // where,
 //} from "firebase/firestore";
 import {
-  ref,
-  push,
   onValue,
   query as rtdbQuery,
   orderByChild,
@@ -25,6 +24,8 @@ function App() {
   const [bookings, setBookings] = useState([]);
   const [popup, setPopup] = useState(null); // {date, hour, show}
   const [showFooter, setShowFooter] = useState(false);
+  const [endTime, setEndTime] = useState(""); // New state for end time
+  const [name, setName] = useState(""); // New state for name
 
   useEffect(() => {
     const today = new Date();
@@ -129,6 +130,38 @@ function App() {
     };
     await push(ref(db, "bookings"), booking);
     setPopup(null);
+  };
+
+  const handleBookingSubmit = async () => {
+    if (!selectedRoom || !popup || !endTime || !name) return;
+
+    // Calculate duration in minutes
+    const [startHour, startMin] = popup.hour.split(":").map(Number);
+    const [endHour, endMin] = endTime.split(":").map(Number);
+    const duration = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+
+    if (duration <= 0) {
+      alert("End time must be after start time.");
+      return;
+    }
+
+    const bookingData = {
+      room: selectedRoom,
+      date: popup.date.toISOString().split("T")[0],
+      startTime: popup.hour,
+      endTime: endTime,
+      duration,
+      name: name, // Make sure you have a state variable for name input
+      // ...other fields if needed...
+    };
+
+    try {
+      await push(ref(db, "bookings"), bookingData);
+      setPopup(null);
+      // Optionally refresh bookings here
+    } catch (e) {
+      alert("Failed to save booking.");
+    }
   };
 
   useEffect(() => {
@@ -339,7 +372,7 @@ function App() {
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <h4 style={{ margin: 0, color: "#78350f" }}>Book Room</h4>
+                  <h4 style={{ margin: 0, color: "#78350f", fontSize: "20px" }}>Book Room</h4>
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
@@ -348,7 +381,7 @@ function App() {
                       if (name && endHour) handleBooking(name, endHour);
                     }}
                   >
-                    <div style={{ margin: "1em 0" }}>
+                    <div style={{ margin: "1em 0", fontSize: "18px"}}>
                       <label>
                         Name:{" "}
                         <input
@@ -359,13 +392,20 @@ function App() {
                             borderRadius: "4px",
                             padding: "0.3em",
                           }}
+                          value={name}
+                          onChange={(e) => setName(e.target.value)} // Bind state
                         />
                       </label>
                     </div>
-                    <div style={{ margin: "1em 0" }}>
+                    <div style={{ margin: "1em 0", fontSize: "18px" }}>
                       <label>
                         End Time:{" "}
-                        <select name="endHour" required>
+                        <select
+                          name="endHour"
+                          required
+                          value={endTime}
+                          onChange={(e) => setEndTime(e.target.value)} // Bind state
+                        >
                           {hours
                             .slice(getHourIndex(popup.hour) + 1)
                             .map((h) => (
@@ -386,6 +426,7 @@ function App() {
                         color: "#facc15",
                         fontWeight: "bold",
                         cursor: "pointer",
+                        fontSize: "16px"
                       }}
                     >
                       Book
@@ -401,6 +442,7 @@ function App() {
                         padding: "0.5em 1em",
                         color: "#78350f",
                         cursor: "pointer",
+                        fontSize: "16px"
                       }}
                     >
                       Cancel

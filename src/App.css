@@ -268,6 +268,88 @@ body {
   background: unset !important;
 }
 
+/* Popup styles */
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fffbe9;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px #0002;
+  padding: 2.5em 1.5em;
+  z-index: 1000;
+  min-width: 380px;
+  max-width: 99vw;
+  width: 520px;
+  min-height: 340px;
+  font-size: 1.5em;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.popup label,
+.popup input,
+.popup select,
+.popup button {
+  font-size: 1.1em;
+  margin: 1em 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ios-slider {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid #facc15;
+  background: #fffbe9;
+  margin: 1em 0;
+  box-shadow: 0 2px 8px #facc1533;
+  display: flex;
+  justify-content: center;
+}
+
+.ios-select {
+  width: 100%;
+  font-size: 1.2em;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0.7em 0;
+  height: 10em;
+  overflow-y: scroll;
+  text-align: center;
+  appearance: none;
+  -webkit-appearance: none;
+  scrollbar-width: thin;
+}
+.ios-select option {
+  padding: 1em 0;
+  border-radius: 8px;
+}
+.ios-select:focus option:checked {
+  background: #fde047;
+  color: #b45309;
+}
+
+@media (max-width: 700px) {
+  .popup {
+    font-size: 1.38em; /* 15% bigger than 1.2em */
+  }
+  .popup label,
+  .popup input,
+  .popup select,
+  .popup button {
+    font-size: 1.27em; /* 15% bigger than 1.1em */
+  }
+  .ios-select {
+    font-size: 1.38em; /* 15% bigger than 1.2em */
+  }
+}
+
 /* ✅ Responsive styles here */
 @media (max-width: 768px) {
   .app {

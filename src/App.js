@@ -76,9 +76,32 @@ function App() {
   const isPastSlot = (date, hour) => {
     const now = new Date();
     const slotDate = new Date(date);
-    const [h] = hour.split(":");
-    slotDate.setHours(Number(h), 0, 0, 0);
-    return slotDate < now;
+    const [slotHour] = hour.split(":");
+    slotDate.setHours(Number(slotHour), 0, 0, 0);
+
+    // If the slot is before today, it's past
+    if (
+      slotDate.getFullYear() < now.getFullYear() ||
+      (slotDate.getFullYear() === now.getFullYear() &&
+        slotDate.getMonth() < now.getMonth()) ||
+      (slotDate.getFullYear() === now.getFullYear() &&
+        slotDate.getMonth() === now.getMonth() &&
+        slotDate.getDate() < now.getDate())
+    ) {
+      return true;
+    }
+
+    // If the slot is today and the hour is less than or equal to now, it's past
+    if (
+      slotDate.getFullYear() === now.getFullYear() &&
+      slotDate.getMonth() === now.getMonth() &&
+      slotDate.getDate() === now.getDate()
+    ) {
+      return Number(slotHour) <= now.getHours();
+    }
+
+    // Otherwise, it's not past
+    return false;
   };
 
   // Helper to get hour index
@@ -218,29 +241,38 @@ function App() {
               </span>
             </div>
 
-            <div className="calendar" style={{ marginTop: "0.2rem", marginBottom: "3.5rem" }}>
-              <div className="calendar-row header">
-                <div className="time-slot"></div>
-                {hours.map((hour) => (
-                  <div key={hour} className="day">
-                    {hour}
+            {/* Calendar: Times as rows, Days as columns */}
+            <div className="calendar-horizontal" style={{ marginTop: "0.2rem", marginBottom: "3.5rem" }}>
+              <div className="calendar-row-horizontal header-horizontal">
+                <div className="time-cell header-cell"></div>
+                {weekDates.map((date) => (
+                  <div
+                    key={date.toISOString()}
+                    className={
+                      "day-cell header-cell" +
+                      (isToday(date) ? " today-header" : "")
+                    }
+                  >
+                    <span className="day-label">
+                      {date.toLocaleDateString(undefined, { weekday: "short" })}
+                    </span>
+                    <span className="date-label">
+                      {date.toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}
+                    </span>
                   </div>
                 ))}
               </div>
-              {weekDates.map((date) => (
-                <div
-                  key={date.toISOString()}
-                  className={`calendar-row ${isToday(date) ? "today" : ""}`}
-                >
-                  <div className="time-slot">{formatDate(date)}</div>
-                  {hours.map((hour, idx) => {
+              {hours.map((hour) => (
+                <div key={hour} className="calendar-row-horizontal">
+                  <div className="time-cell">{hour}</div>
+                  {weekDates.map((date) => {
                     const booking = getBookingForSlot(date, hour);
                     const isBooked = !!booking;
                     const isPast = isPastSlot(date, hour);
                     return (
                       <div
                         key={`${date.toISOString()}-${hour}`}
-                        className="slot"
+                        className="day-cell slot-cell"
                         style={{
                           background: isBooked
                             ? "#fde047"
@@ -248,7 +280,6 @@ function App() {
                             ? "#e5e7eb"
                             : undefined,
                           cursor: isBooked || isPast ? "not-allowed" : "pointer",
-                          position: "relative",
                           color: isPast ? "#9ca3af" : undefined,
                         }}
                         onClick={() => {
@@ -257,7 +288,19 @@ function App() {
                         }}
                       >
                         {isBooked && (
-                          <span style={{ fontSize: "0.8em", color: "#78350f" }}>
+                          <span
+                            style={{
+                              fontSize: "0.8em",
+                              color: "#78350f",
+                              maxWidth: "100%",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              display: "inline-block",
+                              verticalAlign: "middle",
+                            }}
+                            title={booking.name}
+                          >
                             {booking.name}
                           </span>
                         )}
@@ -486,7 +529,7 @@ function App() {
                     display: "inline-block"
                   }}
                 >
-                  Leave a review!
+                  Leave a review !
                 </label>
                 <textarea
                   name="feedback"

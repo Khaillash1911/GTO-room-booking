@@ -117,7 +117,7 @@ body {
 
 /* Time slot column */
 .time-slot {
-  min-width: 78px;
+  min-width: 86px;
   max-width: 92px;
   flex: 0 0 110px;
   padding: 0.7rem 0.8rem;

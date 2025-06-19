@@ -486,7 +486,7 @@ function App() {
                     display: "inline-block"
                   }}
                 >
-                  Leave us a review!
+                  Leave a review!
                 </label>
                 <textarea
                   name="feedback"

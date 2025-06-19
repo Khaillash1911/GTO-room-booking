@@ -112,10 +112,13 @@ body {
   background-color: #facc15;
   font-weight: 700;
   color: #111827;
+  width: 900px;
 }
 
 /* Time slot column */
 .time-slot {
+  min-width: 78px;
+  max-width: 92px;
   flex: 0 0 110px;
   padding: 0.7rem 0.8rem;
   border-right: 2px solid #facc15;

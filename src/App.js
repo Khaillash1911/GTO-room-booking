@@ -444,7 +444,7 @@ function App() {
               <div
                 style={{
                   width: "100%",
-                  textAlign: "right",
+                  textAlign: "left",
                   fontSize: "0.92rem",
                   color: "#facc15",
                   letterSpacing: "0.05em",
@@ -452,7 +452,7 @@ function App() {
                   paddingRight: "0.2rem",
                 }}
               >
-                v1.1
+                v1.2
               </div>
             </div>
             {/* Right section: Feedback */}
@@ -486,7 +486,7 @@ function App() {
                     display: "inline-block"
                   }}
                 >
-                  We'd love to hear your thoughts!
+                  Leave us a review!
                 </label>
                 <textarea
                   name="feedback"

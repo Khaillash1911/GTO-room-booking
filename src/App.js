@@ -57,7 +57,11 @@ function App() {
     return () => unsubscribe();
   }, [selectedRoom, weekDates]);
 
-  const hours = Array.from({ length: 11 }, (_, i) => `${i + 9}:00`);
+  const hours = [];
+  for (let h = 9; h < 19; h++) {
+    hours.push(`${h}:00`);
+  }
+  hours.push("19:00");
 
   const formatDate = (date) => {
     const options = { weekday: "short", month: "numeric", day: "numeric" };
@@ -124,8 +128,8 @@ function App() {
     const booking = {
       room: selectedRoom,
       date: popup.date.toDateString(),
-      startHour: popup.hour,
-      endHour,
+      startHour: popup.hour, // e.g. "9:00" or "9:30"
+      endHour,               // e.g. "10:00" or "10:30"
       name,
     };
     await push(ref(db, "bookings"), booking);
@@ -176,6 +180,26 @@ function App() {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  function getEndTimeOptions(start) {
+    // start is like "9:00"
+    const [startHour, startMin] = start.split(":").map(Number);
+    const options = [];
+    let hour = startHour;
+    let min = startMin + 30;
+    while (hour < 19 || (hour === 19 && min === 0)) {
+      if (min >= 60) {
+        hour += 1;
+        min = 0;
+      }
+      if (hour > 19 || (hour === 19 && min > 0)) break;
+      options.push(
+        `${hour}:${min === 0 ? "00" : "30"}`
+      );
+      min += 30;
+    }
+    return options;
+  }
 
   return (
     <div className="app" style={{ minHeight: "100vh", position: "relative", paddingBottom: "90px" }}>
@@ -406,13 +430,11 @@ function App() {
                           value={endTime}
                           onChange={(e) => setEndTime(e.target.value)} // Bind state
                         >
-                          {hours
-                            .slice(getHourIndex(popup.hour) + 1)
-                            .map((h) => (
-                              <option key={h} value={h}>
-                                {h}
-                              </option>
-                            ))}
+                          {getEndTimeOptions(popup.hour).map((h) => (
+                            <option key={h} value={h}>
+                              {h}
+                            </option>
+                          ))}
                         </select>
                       </label>
                     </div>

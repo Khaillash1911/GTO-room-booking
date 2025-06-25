@@ -136,7 +136,7 @@ function App() {
     setPopup(null);
   };
 
-  const handleBookingSubmit = async () => {
+  /*const handleBookingSubmit = async () => {
     if (!selectedRoom || !popup || !endTime || !name) return;
 
     // Calculate duration in minutes
@@ -166,7 +166,7 @@ function App() {
     } catch (e) {
       alert("Failed to save booking.");
     }
-  };
+  };*/
 
   useEffect(() => {
     const handleScroll = () => {

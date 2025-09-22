@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import { ref, push } from "firebase/database";
-import { db } from "./firebase";
-//import {
-  //collection,
- // addDoc,
- // getDocs,
- // query,
- // where,
-//} from "firebase/firestore";
+import { ref, push, remove } from "firebase/database";
+import { db, auth, provider } from "./firebase";
 import {
   onValue,
   query as rtdbQuery,
   orderByChild,
   equalTo,
 } from "firebase/database";
-import { FaLinkedin, FaGithub } from "react-icons/fa";
+import { signInWithPopup, signOut } from "firebase/auth";
+import { FaLinkedin, FaGithub, FaTrash, FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
+
+// Add your admin emails here
+const ADMIN_EMAILS = [
+  "khaillash1911@gmail.com",
+  "sashi151177@gmail.com"
+];
 
 function App() {
   const [selectedRoom, setSelectedRoom] = useState("");
@@ -26,6 +26,19 @@ function App() {
   const [showFooter, setShowFooter] = useState(false);
   const [endTime, setEndTime] = useState(""); // New state for end time
   const [name, setName] = useState(""); // New state for name
+  const [user, setUser] = useState(null);
+
+  // Auth state listener
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((u) => setUser(u));
+    return () => unsubscribe();
+  }, []);
+
+  const isAdmin = user && ADMIN_EMAILS.includes(user.email);
+
+  // Sign in/out handlers
+  const handleSignIn = () => signInWithPopup(auth, provider);
+  const handleSignOut = () => signOut(auth);
 
   useEffect(() => {
     const today = new Date();
@@ -51,15 +64,20 @@ function App() {
     const q = rtdbQuery(bookingsRef, orderByChild("room"), equalTo(selectedRoom));
     const unsubscribe = onValue(q, (snapshot) => {
       const data = snapshot.val();
-      const bookingsArr = data ? Object.values(data) : [];
+      // Attach booking keys for deletion
+      const bookingsArr = data
+        ? Object.entries(data).map(([key, val]) => ({ ...val, _key: key }))
+        : [];
       setBookings(bookingsArr);
     });
     return () => unsubscribe();
   }, [selectedRoom, weekDates]);
 
+  // Generate 30-min interval hours from 9:00 to 19:00
   const hours = [];
   for (let h = 9; h < 19; h++) {
     hours.push(`${h}:00`);
+    hours.push(`${h}:30`);
   }
   hours.push("19:00");
 
@@ -78,11 +96,12 @@ function App() {
     );
   };
 
+  // isPastSlot now supports 30-min intervals
   const isPastSlot = (date, hour) => {
     const now = new Date();
     const slotDate = new Date(date);
-    const [slotHour] = hour.split(":");
-    slotDate.setHours(Number(slotHour), 0, 0, 0);
+    const [slotHour, slotMin] = hour.split(":").map(Number);
+    slotDate.setHours(slotHour, slotMin, 0, 0);
 
     // If the slot is before today, it's past
     if (
@@ -96,23 +115,25 @@ function App() {
       return true;
     }
 
-    // If the slot is today and the hour is less than or equal to now, it's past
+    // If the slot is today and the time is less than or equal to now, it's past
     if (
       slotDate.getFullYear() === now.getFullYear() &&
       slotDate.getMonth() === now.getMonth() &&
       slotDate.getDate() === now.getDate()
     ) {
-      return Number(slotHour) <= now.getHours();
+      if (slotHour < now.getHours()) return true;
+      if (slotHour === now.getHours() && slotMin <= now.getMinutes()) return true;
+      return false;
     }
 
     // Otherwise, it's not past
     return false;
   };
 
-  // Helper to get hour index
+  // Helper to get hour index (for 30-min intervals)
   const getHourIndex = (hour) => hours.indexOf(hour);
 
-  // Check if a slot is booked
+  // Check if a slot is booked (for 30-min intervals)
   const getBookingForSlot = (date, hour) => {
     return bookings.find(
       (b) =>
@@ -123,50 +144,72 @@ function App() {
     );
   };
 
+  // Check if a time range overlaps with any existing booking
+  const isOverlapping = (date, startHour, endHour) => {
+    const startIdx = getHourIndex(startHour);
+    const endIdx = getHourIndex(endHour);
+    return bookings.some(
+      (b) =>
+        b.room === selectedRoom &&
+        b.date === date.toDateString() &&
+        // Overlap if ranges intersect
+        getHourIndex(b.startHour) < endIdx &&
+        getHourIndex(b.endHour) > startIdx
+    );
+  };
+
+  // Generate end time options in 30-min increments, stopping at next booking
+  function getEndTimeOptions(start) {
+    const [startHour, startMin] = start.split(":").map(Number);
+    const options = [];
+    let hour = startHour;
+    let min = startMin + 30;
+    let prev = start;
+    while (hour < 19 || (hour === 19 && min === 0)) {
+      if (min >= 60) {
+        hour += 1;
+        min = 0;
+      }
+      if (hour > 19 || (hour === 19 && min > 0)) break;
+      const end = `${hour}:${min === 0 ? "00" : "30"}`;
+      // Prevent overlap: stop if this interval would overlap with any booking
+      if (isOverlapping(popup.date, start, end)) break;
+      options.push(end);
+      prev = end;
+      min += 30;
+    }
+    return options;
+  }
+
   // Handle booking submit
   const handleBooking = async (name, endHour) => {
+    // Prevent overlapping bookings
+    if (isOverlapping(popup.date, popup.hour, endHour)) {
+      alert("This time range overlaps with an existing booking.");
+      return;
+    }
     const booking = {
       room: selectedRoom,
       date: popup.date.toDateString(),
-      startHour: popup.hour, // e.g. "9:00" or "9:30"
-      endHour,               // e.g. "10:00" or "10:30"
+      startHour: popup.hour,
+      endHour,
       name,
     };
     await push(ref(db, "bookings"), booking);
     setPopup(null);
+    setEndTime(""); // Reset end time
+    setName("");    // Reset name
   };
 
-  /*const handleBookingSubmit = async () => {
-    if (!selectedRoom || !popup || !endTime || !name) return;
-
-    // Calculate duration in minutes
-    const [startHour, startMin] = popup.hour.split(":").map(Number);
-    const [endHour, endMin] = endTime.split(":").map(Number);
-    const duration = (endHour * 60 + endMin) - (startHour * 60 + startMin);
-
-    if (duration <= 0) {
-      alert("End time must be after start time.");
-      return;
+  // Delete booking (admin only)
+  const handleDeleteBooking = (bookingKey) => {
+    if (!isAdmin) return;
+    if (window.confirm("Delete this booking?")) {
+      remove(ref(db, `bookings/${bookingKey}`));
     }
+  };
 
-    const bookingData = {
-      room: selectedRoom,
-      date: popup.date.toISOString().split("T")[0],
-      startTime: popup.hour,
-      endTime: endTime,
-      duration,
-      name: name, // Make sure you have a state variable for name input
-      // ...other fields if needed...
-    };
-
-    try {
-      await push(ref(db, "bookings"), bookingData);
-      setPopup(null);
-      // Optionally refresh bookings here
-    } catch (e) {
-      alert("Failed to save booking.");
-    }
-  };*/
+  // Show footer when scrolled to bottom
 
   useEffect(() => {
     const handleScroll = () => {
@@ -181,29 +224,46 @@ function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  function getEndTimeOptions(start) {
-    // start is like "9:00"
-    const [startHour, startMin] = start.split(":").map(Number);
-    const options = [];
-    let hour = startHour;
-    let min = startMin + 30;
-    while (hour < 19 || (hour === 19 && min === 0)) {
-      if (min >= 60) {
-        hour += 1;
-        min = 0;
-      }
-      if (hour > 19 || (hour === 19 && min > 0)) break;
-      options.push(
-        `${hour}:${min === 0 ? "00" : "30"}`
-      );
-      min += 30;
-    }
-    return options;
-  }
-
   return (
     <div className="app" style={{ minHeight: "100vh", position: "relative", paddingBottom: "90px" }}>
-      <nav className="navbar">GTO</nav>
+      <nav className="navbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span>GTO</span>
+        <div>
+          {user ? (
+            <span style={{ display: "flex", alignItems: "center", gap: "0.7em" }}>
+              <img src={user.photoURL} alt="avatar" style={{ width: 21, height: 21, borderRadius: "50%", marginLeft: "50px"}} />
+              <span style={{ fontSize: "20px" }}>{user.displayName || user.email}</span>
+              <button
+                onClick={handleSignOut}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#facc15",
+                  cursor: "pointer",
+                  fontSize: "20px"
+                }}
+                title="Sign out"
+              >
+                <FaSignOutAlt />
+              </button>
+            </span>
+          ) : (
+            <button
+              onClick={handleSignIn}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#facc15",
+                cursor: "pointer",
+                fontSize: "20px"
+              }}
+              title="Sign in with Google"
+            >
+              <FaSignInAlt /> Admin
+            </button>
+          )}
+        </div>
+      </nav>
 
       <div className="booking">
         <h2>Select a Room</h2>
@@ -338,6 +398,7 @@ function App() {
                             : undefined,
                           cursor: isBooked || isPast ? "not-allowed" : "pointer",
                           color: isPast ? "#9ca3af" : undefined,
+                          position: "relative"
                         }}
                         onClick={() => {
                           if (!isBooked && !isPast)
@@ -359,6 +420,27 @@ function App() {
                             title={booking.name}
                           >
                             {booking.name}
+                            {/* Admin delete button */}
+                            {isAdmin && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteBooking(booking._key);
+                                }}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  color: "#dc2626",
+                                  marginLeft: 6,
+                                  cursor: "pointer",
+                                  fontSize: "1em",
+                                  verticalAlign: "middle"
+                                }}
+                                title="Delete booking"
+                              >
+                                <FaTrash />
+                              </button>
+                            )}
                           </span>
                         )}
                       </div>
